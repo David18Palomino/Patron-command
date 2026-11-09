@@ -121,7 +121,6 @@ Patron-command/
 │   ├── diagrama_antes.puml                           # Archivo PlantUML arquitectura antes
 │   └── diagrama_despues.puml                         # Archivo PlantUML arquitectura después
 ├── BuildingSmartAutomation.jar                       # Ejecutable autónomo universal (Doble clic)
-├── GUION_SUSTENTACION.md                             # Guion para exposición oral y preguntas de jurado
 ├── run-before.bat                                    # Script ejecución rápida consola Antes
 ├── run-after.bat                                     # Script ejecución rápida consola Después
 ├── run-gui.bat                                       # Script ejecución rápida GUI interactiva

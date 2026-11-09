@@ -180,3 +180,4 @@ public class CommandPatternTest {
         assertTrue("CP-06.4: Historial queda vacío tras desapilar", invoker.getHistory().isEmpty(), "La pila debió quedar vacía");
     }
 }
+
