@@ -1,0 +1,238 @@
+@startuml diagrama_despues
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #F8FAFC
+    BorderColor #334155
+    ArrowColor #0F172A
+}
+
+title Arquitectura DESPUÉS de aplicar el Patrón Command\n(Desacoplamiento GoF - Invoker, Command, History, Receivers)
+
+' 1. Capa Invocador (Invoker)
+package "com.building.automation.after.invoker" {
+    class ControlPanel <<Invoker>> {
+        - CommandHistory history
+        --
+        + ControlPanel()
+        + ControlPanel(CommandHistory history)
+        + executeCommand(Command command): void
+        + undoLastCommand(): boolean
+        + getHistory(): CommandHistory
+    }
+
+    class CommandHistory {
+        - Deque<Command> undoStack
+        - List<String> auditTrail
+        --
+        + push(Command command): void
+        + pop(): Command
+        + isEmpty(): boolean
+        + size(): int
+        + getStackSnapshot(): List<Command>
+        + getAuditTrail(): List<String>
+        + printHistory(): void
+        + clear(): void
+    }
+}
+
+' 2. Capa Comandos (Commands)
+package "com.building.automation.after.command" {
+    interface Command <<interface>> {
+        + {abstract} execute(): void
+        + {abstract} undo(): void
+        + {abstract} getDescription(): String
+    }
+
+    class TurnOnLightCommand implements Command {
+        - Light light
+        - boolean targetState
+        - boolean previousState
+        --
+        + TurnOnLightCommand(Light light)
+        + TurnOnLightCommand(Light light, boolean targetState)
+        + execute(): void
+        + undo(): void
+        + getDescription(): String
+    }
+
+    class TurnOffLightCommand implements Command {
+        - Light light
+        - boolean previousState
+        --
+        + TurnOffLightCommand(Light light)
+        + execute(): void
+        + undo(): void
+        + getDescription(): String
+    }
+
+    class SetTemperatureCommand implements Command {
+        - AirConditioner airConditioner
+        - int targetTemperature
+        - int previousTemperature
+        - boolean previousPowerState
+        --
+        + SetTemperatureCommand(AirConditioner ac, int targetTemperature)
+        + execute(): void
+        + undo(): void
+        + getDescription(): String
+    }
+
+    class LockDoorCommand implements Command {
+        - SmartLock lock
+        - boolean targetLocked
+        - boolean previousLocked
+        --
+        + LockDoorCommand(SmartLock lock)
+        + LockDoorCommand(SmartLock lock, boolean targetLocked)
+        + execute(): void
+        + undo(): void
+        + getDescription(): String
+    }
+
+    class UnlockDoorCommand implements Command {
+        - SmartLock lock
+        - boolean previousLocked
+        --
+        + UnlockDoorCommand(SmartLock lock)
+        + execute(): void
+        + undo(): void
+        + getDescription(): String
+    }
+
+    class ActivateAlarmCommand implements Command {
+        - AlarmSystem alarm
+        - boolean targetArmed
+        - boolean previousArmed
+        --
+        + ActivateAlarmCommand(AlarmSystem alarm)
+        + ActivateAlarmCommand(AlarmSystem alarm, boolean targetArmed)
+        + execute(): void
+        + undo(): void
+        + getDescription(): String
+    }
+
+    class DeactivateAlarmCommand implements Command {
+        - AlarmSystem alarm
+        - boolean previousArmed
+        --
+        + DeactivateAlarmCommand(AlarmSystem alarm)
+        + execute(): void
+        + undo(): void
+        + getDescription(): String
+    }
+
+    class MacroCommand implements Command {
+        - String name
+        - List<Command> commands
+        --
+        + MacroCommand(String name)
+        + MacroCommand(String name, List<Command> commands)
+        + addCommand(Command command): void
+        + execute(): void
+        + undo(): void
+        + getDescription(): String
+    }
+}
+
+' 3. Capa Receptores (Receivers)
+package "com.building.automation.after.receiver" {
+    class Light <<Receiver>> {
+        - String location
+        - boolean on
+        --
+        + Light(String location)
+        + turnOn(): void
+        + turnOff(): void
+        + setOn(boolean state): void
+        + isOn(): boolean
+        + getLocation(): String
+        + getStatus(): String
+    }
+
+    class AirConditioner <<Receiver>> {
+        - String location
+        - boolean on
+        - int temperature
+        --
+        + AirConditioner(String location, int defaultTemperature)
+        + turnOn(): void
+        + turnOff(): void
+        + setTemperature(int temperature): void
+        + setPower(boolean state): void
+        + getTemperature(): int
+        + isOn(): boolean
+        + getLocation(): String
+        + getStatus(): String
+    }
+
+    class SmartLock <<Receiver>> {
+        - String doorName
+        - boolean locked
+        --
+        + SmartLock(String doorName)
+        + lock(): void
+        + unlock(): void
+        + setLocked(boolean state): void
+        + isLocked(): boolean
+        + getDoorName(): String
+        + getStatus(): String
+    }
+
+    class AlarmSystem <<Receiver>> {
+        - String zone
+        - boolean armed
+        --
+        + AlarmSystem(String zone)
+        + activate(): void
+        + deactivate(): void
+        + setArmed(boolean state): void
+        + isArmed(): boolean
+        + getZone(): String
+        + getStatus(): String
+    }
+}
+
+package "com.building.automation.after" {
+    class MainAfter <<Client>> {
+        + {static} main(String[] args): void
+    }
+}
+
+' Relaciones del Patrón Command
+ControlPanel o-- CommandHistory : "gestiona"
+ControlPanel ..> Command : "despacha polimórficamente\n(execute / undo)"
+CommandHistory o-- "0..*" Command : "almacena pila LIFO"
+MacroCommand o-- "0..*" Command : "compone sub-comandos"
+
+TurnOnLightCommand --> "1" Light : "Receiver"
+TurnOffLightCommand --> "1" Light : "Receiver"
+SetTemperatureCommand --> "1" AirConditioner : "Receiver"
+LockDoorCommand --> "1" SmartLock : "Receiver"
+UnlockDoorCommand --> "1" SmartLock : "Receiver"
+ActivateAlarmCommand --> "1" AlarmSystem : "Receiver"
+DeactivateAlarmCommand --> "1" AlarmSystem : "Receiver"
+
+MainAfter ..> ControlPanel : "configura Invocador"
+MainAfter ..> Command : "instancia Comandos"
+MainAfter ..> Light : "instancia Receptores"
+MainAfter ..> AirConditioner : "instancia Receptores"
+MainAfter ..> SmartLock : "instancia Receptores"
+MainAfter ..> AlarmSystem : "instancia Receptores"
+
+note top of ControlPanel
+  <b>DESACOPLAMIENTO TOTAL:</b>
+  ControlPanel NO conoce a ningún Receiver.
+  Solo depende de la abstracción <b>Command</b>.
+end note
+
+note bottom of MacroCommand
+  <b>MODO NOCHE:</b>
+  Ejecuta consecutivamente en orden (0..N-1).
+  <b>Undo():</b> Revierte en orden inverso (N-1..0)
+  garantizando restauración atómica exacta.
+end note
+
+@enduml
+

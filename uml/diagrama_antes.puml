@@ -1,0 +1,119 @@
+@startuml diagrama_antes
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam classAttributeIconSize 0
+skinparam class {
+    BackgroundColor #F8FAFC
+    BorderColor #334155
+    ArrowColor #0F172A
+}
+
+title Arquitectura ANTES de aplicar el Patrón Command\n(Alto Acoplamiento - Dependencia Directa de Clases Concretas)
+
+package "com.building.automation.before.panel" {
+    class ControlPanel {
+        - List<Light> lights
+        - List<AirConditioner> airConditioners
+        - List<SmartLock> locks
+        - AlarmSystem alarmSystem
+        --
+        + ControlPanel(AlarmSystem alarmSystem)
+        + registerLight(Light light): void
+        + registerAirConditioner(AirConditioner ac): void
+        + registerLock(SmartLock lock): void
+        + turnOnLight(Light light): void
+        + turnOffLight(Light light): void
+        + turnOnAirConditioner(AirConditioner ac): void
+        + turnOffAirConditioner(AirConditioner ac): void
+        + setAirConditionerTemperature(AirConditioner ac, int temp): void
+        + lockDoor(SmartLock lock): void
+        + unlockDoor(SmartLock lock): void
+        + activateAlarm(): void
+        + deactivateAlarm(): void
+        + executeNightMode(int targetTemperature): void
+        + printCurrentDeviceStatus(): void
+    }
+}
+
+package "com.building.automation.before.device" {
+    class Light {
+        - String location
+        - boolean on
+        --
+        + Light(String location)
+        + turnOn(): void
+        + turnOff(): void
+        + isOn(): boolean
+        + getLocation(): String
+        + getStatus(): String
+    }
+
+    class AirConditioner {
+        - String location
+        - boolean on
+        - int temperature
+        --
+        + AirConditioner(String location, int defaultTemperature)
+        + turnOn(): void
+        + turnOff(): void
+        + setTemperature(int temperature): void
+        + getTemperature(): int
+        + isOn(): boolean
+        + getLocation(): String
+        + getStatus(): String
+    }
+
+    class SmartLock {
+        - String doorName
+        - boolean locked
+        --
+        + SmartLock(String doorName)
+        + lock(): void
+        + unlock(): void
+        + isLocked(): boolean
+        + getDoorName(): String
+        + getStatus(): String
+    }
+
+    class AlarmSystem {
+        - String zone
+        - boolean armed
+        --
+        + AlarmSystem(String zone)
+        + activate(): void
+        + deactivate(): void
+        + isArmed(): boolean
+        + getZone(): String
+        + getStatus(): String
+    }
+}
+
+package "com.building.automation.before" {
+    class MainBefore {
+        + {static} main(String[] args): void
+    }
+}
+
+' Relaciones de Alto Acoplamiento
+MainBefore ..> ControlPanel : "crea y usa"
+MainBefore ..> Light : "instancia"
+MainBefore ..> AirConditioner : "instancia"
+MainBefore ..> SmartLock : "instancia"
+MainBefore ..> AlarmSystem : "instancia"
+
+ControlPanel --> "0..*" Light : "conoce directamente\n(acoplado)"
+ControlPanel --> "0..*" AirConditioner : "conoce directamente\n(acoplado)"
+ControlPanel --> "0..*" SmartLock : "conoce directamente\n(acoplado)"
+ControlPanel --> "1" AlarmSystem : "conoce directamente\n(acoplado)"
+
+note right of ControlPanel
+  <b>PROBLEMAS ARQUITECTÓNICOS:</b>
+  1. <b>Alto Acoplamiento:</b> ControlPanel depende de 4 clases concretas.
+  2. <b>Violación OCP:</b> Añadir nuevos dispositivos requiere modificar esta clase.
+  3. <b>Sin soporte Undo:</b> No existe reversión polimórfica ni consistente.
+  4. <b>Sin Historial:</b> No hay seguimiento de auditoría ni colas de ejecución.
+  5. <b>Modo Noche Hardcodeado:</b> Secuencia fija e intransferible.
+end note
+
+@enduml
+
